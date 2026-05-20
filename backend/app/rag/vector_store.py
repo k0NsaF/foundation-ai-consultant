@@ -1,4 +1,3 @@
-import os
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from app.rag.embeddings import EmbeddingModel
@@ -6,23 +5,13 @@ import uuid
 
 class VectorStore:
     def __init__(self, collection_name: str = "foundations"):
-        # ОТЛАДКА: выводим переменные окружения
-        print("=== ОТЛАДКА QDRANT ===")
-        print(f"QDRANT_URL = {os.getenv('QDRANT_URL')}")
-        print(f"QDRANT_API_KEY = {os.getenv('QDRANT_API_KEY', '')[:50] if os.getenv('QDRANT_API_KEY') else 'None'}...")
+        # Прямые значения (хардкод)
+        url = "https://6147f21b-c372-4319-9945-285e453a502d.eu-west-1-0.aws.cloud.qdrant.io"
+        api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6MDdkMTU0ODktYzdjMy00YmE1LTg0YzUtZDU1YTYzMGU4MDk5In0.x6PUPEQqpap0OQM460jZP5_ZGieI9-jfUEeTV3_v9PY"
         
-        url = os.getenv("QDRANT_URL", "http://localhost:6333")
-        api_key = os.getenv("QDRANT_API_KEY", "")
+        print(f"🔗 Подключение к Qdrant Cloud: {url}")
         
-        print(f"Подключение к Qdrant: URL={url}")
-        
-        if api_key and url != "http://localhost:6333":
-            self.client = QdrantClient(url=url, api_key=api_key)
-            print("✅ Подключено к Qdrant Cloud")
-        else:
-            self.client = QdrantClient(host="localhost", port=6333)
-            print("⚠️ Подключено к локальному Qdrant")
-        
+        self.client = QdrantClient(url=url, api_key=api_key)
         self.collection_name = collection_name
         self.embedding_model = EmbeddingModel()
         self._init_collection()

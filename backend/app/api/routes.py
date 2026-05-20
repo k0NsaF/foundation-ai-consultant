@@ -8,10 +8,8 @@ from ..pipeline.weather import WeatherAdvisor
 from ..pipeline.geocoding import GeocodingService
 from ..pipeline.store_locator import StoreLocator
 from ..pipeline.generator import AnswerGenerator
-from ..rag.retriever import RAGRetriever
+from ..retriever import RAGRetriever
 import os
-
-print("=== ЗАГРУЗКА routes.py ===")
 
 router = APIRouter()
 

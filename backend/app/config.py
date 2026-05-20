@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+import os.path
+
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env')
+load_dotenv(env_path)
 
 class Config:
     # GitHub Models
@@ -7,15 +12,10 @@ class Config:
     GITHUB_TEMPERATURE = 0.3
     GITHUB_MAX_TOKENS = 1500
     
-    # Qdrant Cloud - читаем из переменных окружения
-    QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
-    QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
-    COLLECTION_NAME = "foundation_standards"
-    
-    # Embedding
+    # Embedding (оставляем для совместимости, но RAG отключён)
     EMBEDDING_MODEL = "intfloat/multilingual-e5-large"
     
-    # Redis
+    # Redis (опционально)
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     
     # Open-Meteo
@@ -26,7 +26,3 @@ class Config:
     DATA_DIR = os.path.join(BASE_DIR, "data")
     
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-    
-    # Вывод для отладки
-    print(f"QDRANT_URL = {QDRANT_URL}")
-    print(f"QDRANT_API_KEY = {QDRANT_API_KEY[:20] if QDRANT_API_KEY else 'None'}...")

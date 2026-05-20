@@ -1,25 +1,28 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from app.rag.embeddings import EmbeddingModel
-from app.config import Config
+import os
 import uuid
 
 
 class VectorStore:
     def __init__(self, collection_name: str = "foundations"):
-        print(f"Подключение к Qdrant: URL={Config.QDRANT_URL}")
+        # Читаем переменные окружения
+        qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
+        qdrant_api_key = os.getenv("QDRANT_API_KEY", "")
+        
+        print(f"Подключение к Qdrant: URL={qdrant_url}")
         
         # Подключение к облачному Qdrant
-        if Config.QDRANT_API_KEY and Config.QDRANT_URL != "http://localhost:6333":
+        if qdrant_api_key and qdrant_url != "http://localhost:6333":
             self.client = QdrantClient(
-                url=Config.QDRANT_URL,
-                api_key=Config.QDRANT_API_KEY
+                url=qdrant_url,
+                api_key=qdrant_api_key
             )
-            print("Подключено к Qdrant Cloud")
+            print("✅ Подключено к Qdrant Cloud")
         else:
-            # Локальное подключение (для разработки)
             self.client = QdrantClient(host="localhost", port=6333)
-            print("Подключено к локальному Qdrant")
+            print("⚠️ Подключено к локальному Qdrant")
         
         self.collection_name = collection_name
         self.embedding_model = EmbeddingModel()
@@ -39,18 +42,18 @@ class VectorStore:
                     )
                 )
                 self._add_sample_documents()
-                print(f"Коллекция {self.collection_name} создана")
+                print(f"✅ Коллекция {self.collection_name} создана")
             else:
-                print(f"Коллекция {self.collection_name} уже существует")
+                print(f"✅ Коллекция {self.collection_name} уже существует")
         except Exception as e:
-            print(f"Ошибка инициализации коллекции: {e}")
+            print(f"❌ Ошибка инициализации коллекции: {e}")
 
     def _add_sample_documents(self):
         documents = [
-            {"text": "СП 22.13330.2016: Свайные фундаменты на торфах", "source": "СП 22.13330.2016"},
-            {"text": "ГОСТ 25100-2020: Классификация грунтов. Суглинки и глины.", "source": "ГОСТ 25100-2020"},
-            {"text": "УШП для пучинистых грунтов и высоких нагрузок.", "source": "Техническая рекомендация"},
-            {"text": "Ленточные фундаменты для песчаных и скальных грунтов.", "source": "СП 50.101.2004"},
+            {"text": "СП 22.13330.2016: Свайные фундаменты на торфах и болотах", "source": "СП 22.13330.2016"},
+            {"text": "ГОСТ 25100-2020: Классификация грунтов. Суглинки и глины требуют заглубления.", "source": "ГОСТ 25100-2020"},
+            {"text": "УШП рекомендуется для пучинистых грунтов и высоких нагрузок", "source": "Техническая рекомендация"},
+            {"text": "Ленточные фундаменты подходят для песчаных и скальных грунтов", "source": "СП 50.101.2004"},
         ]
         
         points = []
@@ -68,7 +71,7 @@ class VectorStore:
             collection_name=self.collection_name,
             points=points
         )
-        print(f"Добавлено {len(points)} документов")
+        print(f"✅ Добавлено {len(points)} документов в коллекцию")
 
     def search(self, query: str, limit: int = 5) -> list[dict]:
         query_vector = self.embedding_model.encode_query(query)

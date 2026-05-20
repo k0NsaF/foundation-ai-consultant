@@ -1,8 +1,11 @@
 from typing import List, Dict
 from app.rag.vector_store import VectorStore
 
+print("=== ЗАГРУЗКА retriever.py ===")
+
 class RAGRetriever:
     def __init__(self):
+        print("RAGRetriever.__init__ вызван")
         self.vector_store = VectorStore()
         print("RAGRetriever инициализирован")
 
@@ -16,5 +19,6 @@ class RAGRetriever:
         return " ".join(parts)
 
     def retrieve(self, user_input: str, enriched_params: Dict, top_k: int = 5) -> List[Dict]:
+        print("RAGRetriever.retrieve вызван")
         query = self.build_search_query(user_input, enriched_params)
         return self.vector_store.search(query, limit=top_k)

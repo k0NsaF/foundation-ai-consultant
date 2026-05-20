@@ -9,12 +9,10 @@ ENV QDRANT_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3Vi
 
 WORKDIR /app
 
-COPY backend/requirements.txt ./backend/
-RUN pip install --no-cache-dir -r backend/requirements.txt
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY backend/ ./backend/
-
-WORKDIR /app/backend
+COPY backend/ .
 
 EXPOSE 7860
 

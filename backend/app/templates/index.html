@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ИИ-КОНСУЛЬТАНТ ПО ПОДБОРУ ФУНДАМЕНТА ДЛЯ ИЖС</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
+            min-height: 100vh;
+            color: #1a2a3a;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border-radius: 32px;
+            padding: 40px 56px;
+            margin-bottom: 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d97706, #fbbf24, #d97706, transparent);
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e3a5f, #d97706);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #4a5568;
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 28px;
+            border: 1px solid #e2e8f0;
+            padding: 32px;
+            margin-bottom: 28px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px -8px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px -10px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            color: #1a2a3a;
+            transition: all 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #d97706;
+            box-shadow: 0 0 0 3px rgba(217,119,6,0.1);
+            background: #ffffff;
+        }
+
+        .row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .col {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            border: none;
+            color: white;
+            padding: 16px 48px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(217,119,6,0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(217,119,6,0.35);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: #d97706;
+            background: rgba(217,119,6,0.08);
+        }
+
+        .tab-btn.active {
+            color: #d97706;
+            background: rgba(217,119,6,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .recommendation-text {
+            line-height: 1.7;
+            color: #334155;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            border-color: #d97706;
+        }
+
+        .metric-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .metric-card .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #d97706;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e3a5f;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .expander {
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .expander-header {
+            background: #f8fafc;
+            padding: 16px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #1e3a5f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expander-header:hover {
+            background: #f1f5f9;
+        }
+
+        .expander-header i {
+            transition: transform 0.2s;
+            color: #d97706;
+        }
+
+        .expander-content {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .expander-content.open {
+            max-height: 800px;
+            padding: 20px;
+        }
+
+        .history-item {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-left: 3px solid #d97706;
+        }
+
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader-content {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 40px 60px;
+            text-align: center;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.2);
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #d97706;
+            border-radius: 50%;
+            animation: rotate 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #d97706;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+            .header {
+                padding: 28px 20px;
+            }
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            .card {
+                padding: 20px;
+            }
+            .tab-btn {
+                padding: 6px 14px;
+                font-size: 0.8rem;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .btn-primary {
+                padding: 12px 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="font-size: 4rem; margin-bottom: 16px;">🏠</div>
+            <h1>ИИ-КОНСУЛЬТАНТ ПО ПОДБОРУ ФУНДАМЕНТА ДЛЯ ИЖС</h1>
+            <p>Опишите ваш дом и участок — искусственный интеллект подберёт оптимальный фундамент с расчётом стоимости и учётом погоды</p>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-drafting-compass"></i> Параметры строительства</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label><i class="fas fa-city"></i> ГЕОЛОКАЦИЯ *</label>
+                        <input type="text" id="city" placeholder="Москва, Сургут, Краснодар">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label><i class="fas fa-location-dot"></i> УЛИЦА / ДОМ (опционально)</label>
+                        <input type="text" id="address" placeholder="ул. Тверская 15">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-home"></i> ОПИСАНИЕ ОБЪЕКТА</label>
+                <textarea id="userInput" rows="4" placeholder="Пример: Дом из газобетона, 2 этажа, размер 10 на 8 метров, грунт — суглинок"></textarea>
+            </div>
+
+            <div class="expander">
+                <div class="expander-header" onclick="toggleExpander()">
+                    <span><i class="fas fa-sliders-h"></i> ПРОДВИНУТЫЕ НАСТРОЙКИ</span>
+                    <i class="fas fa-chevron-down" id="expanderIcon"></i>
+                </div>
+                <div class="expander-content" id="settingsContent">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label><i class="fas fa-file-pdf"></i> ЗАГРУЗИТЬ ГЕОЛОГИЮ (PDF)</label>
+                                <input type="file" id="geologyFile" accept=".pdf">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-chart-line"></i> БЮДЖЕТ (тыс. руб)</label>
+                                <select id="budget">
+                                    <option>до 300</option>
+                                    <option>300-500</option>
+                                    <option selected>500-800</option>
+                                    <option>800-1200</option>
+                                    <option>1200+</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="selfBuild">
+                                    <span><i class="fas fa-hard-hat"></i> СТРОИТЕЛЬСТВО СВОИМИ РУКАМИ</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-alt"></i> ЖЕЛАЕМЫЙ МЕСЯЦ НАЧАЛА</label>
+                                <select id="desiredMonth">
+                                    <option>не важно</option>
+                                    <option>январь</option><option>февраль</option><option>март</option>
+                                    <option>апрель</option><option>май</option><option>июнь</option>
+                                    <option>июль</option><option>август</option><option>сентябрь</option>
+                                    <option>октябрь</option><option>ноябрь</option><option>декабрь</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-history"></i> ИСТОРИЯ ЗАПРОСОВ</label>
+                                <div id="historyContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 28px;">
+                <button class="btn-primary" id="submitBtn" onclick="submitQuery()">
+                    <i class="fas fa-microchip"></i> ПОДОБРАТЬ ФУНДАМЕНТ
+                </button>
+            </div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('recommendation')">
+                        <i class="fas fa-lightbulb"></i> РЕКОМЕНДАЦИЯ AI
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('estimate')">
+                        <i class="fas fa-calculator"></i> ФИНАНСОВАЯ МОДЕЛЬ
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('weather')">
+                        <i class="fas fa-cloud-moon"></i> КЛИМАТИЧЕСКИЙ АНАЛИЗ
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('stores')">
+                        <i class="fas fa-store"></i> МАТЕРИАЛЫ И ЦЕНЫ
+                    </button>
+                </div>
+
+                <div id="recommendation" class="tab-content active"></div>
+                <div id="estimate" class="tab-content"></div>
+                <div id="weather" class="tab-content"></div>
+                <div id="stores" class="tab-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader" class="loader-overlay" style="display: none;">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p style="margin-top: 16px; font-weight: 600;">АНАЛИЗ ДАННЫХ</p>
+            <p style="font-size: 13px; color: #64748b; margin-top: 8px;">Поиск в нормативной базе СП, ГОСТ, обработка параметров...</p>
+        </div>
+    </div>
+
+    <script>
+        let currentResult = null;
+
+        const API_URL = '';
+
+        function toggleExpander() {
+            const content = document.getElementById('settingsContent');
+            const icon = document.getElementById('expanderIcon');
+            content.classList.toggle('open');
+            icon.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showLoader() { document.getElementById('loader').style.display = 'flex'; }
+        function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+
+        function formatNumber(num) { return new Intl.NumberFormat('ru-RU').format(num); }
+
+        function formatRecommendation(text) {
+            if (!text) return 'Нет данных';
+            return text.replace(/\n/g, '<br>');
+        }
+
+        function displayHistory() {
+            const history = JSON.parse(localStorage.getItem('foundation_history') || '[]');
+            const container = document.getElementById('historyContainer');
+            if (!container) return;
+            if (history.length === 0) {
+                container.innerHTML = '<p style="color: #94a3b8;">История пуста</p>';
+                return;
+            }
+            container.innerHTML = history.slice(-5).reverse().map(item => `
+                <div class="history-item">
+                    <strong>${item.timestamp}</strong> – ${item.city} – ${item.foundation}<br>
+                    <small style="color: #64748b;">${item.query.substring(0, 80)}...</small>
+                </div>
+            `).join('');
+        }
+
+        function saveToHistory(city, foundation, query) {
+            const history = JSON.parse(localStorage.getItem('foundation_history') || '[]');
+            history.push({ timestamp: new Date().toLocaleString(), city, foundation, query });
+            if (history.length > 10) history.shift();
+            localStorage.setItem('foundation_history', JSON.stringify(history));
+            displayHistory();
+        }
+
+        function displayRecommendation(data) {
+            const container = document.getElementById('recommendation');
+            let answerHtml = '<div class="recommendation-text">' + formatRecommendation(data.answer) + '</div>';
+            if (data.sources && data.sources.length > 0) {
+                answerHtml += `<hr style="margin: 24px 0; border-color: #e2e8f0;"><h3 style="font-size: 0.9rem; font-weight: 600; color: #d97706; margin-bottom: 12px;"><i class="fas fa-gavel"></i> НОРМАТИВНАЯ БАЗА</h3><ul style="margin-left: 20px;">`;
+                data.sources.forEach(src => { answerHtml += `<li style="margin-bottom: 8px; color: #4a5568;">${src}</li>`; });
+                answerHtml += `</ul>`;
+            }
+            container.innerHTML = answerHtml;
+        }
+
+        function displayEstimate(data) {
+            const ce = data.cost_estimate || {};
+            const container = document.getElementById('estimate');
+            container.innerHTML = `
+                <h3 style="margin-bottom: 20px; color: #d97706; font-size: 1rem;"><i class="fas fa-ruler-combined"></i> ТИП КОНСТРУКЦИИ: ${data.foundation_type || 'Не определён'}</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card"><h3>МАТЕРИАЛЫ</h3><div class="value">${formatNumber(ce.materials || 0)} ₽</div></div>
+                    <div class="metric-card"><h3>РАБОТЫ</h3><div class="value">${formatNumber(ce.work || 0)} ₽</div></div>
+                    <div class="metric-card"><h3>ЛОГИСТИКА</h3><div class="value">${formatNumber(ce.delivery || 0)} ₽</div></div>
+                    <div class="metric-card"><h3>РЕЗЕРВ</h3><div class="value">${formatNumber(ce.overhead || 0)} ₽</div></div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card" style="background: linear-gradient(135deg, #fef9e8, #fff5e0); border-color: #d97706;">
+                        <h3 style="color: #d97706;">ОБЩАЯ СТОИМОСТЬ</h3>
+                        <div class="value" style="color: #b45309;">${formatNumber(ce.total || 0)} ₽</div>
+                    </div>
+                </div>
+                ${ce.self_build ? '<div style="background: #ecfdf5; border-radius: 16px; padding: 12px 16px; margin-top: 16px; border: 1px solid #10b981;"><i class="fas fa-check-circle" style="color: #10b981;"></i> Режим DIY — стоимость работ исключена</div>' : ''}
+                ${ce.pile_count ? `<p style="margin-top: 16px; color: #64748b;"><i class="fas fa-chart-simple"></i> Количество свай по расчёту: ${ce.pile_count} шт</p>` : ''}
+            `;
+        }
+
+        function displayWeather(data) {
+            const w = data.weather_recommendation || {};
+            const container = document.getElementById('weather');
+            let calendarHtml = '';
+            if (w.monthly_calendar && w.monthly_calendar.length > 0) {
+                const filtered = w.monthly_calendar.filter(m => m.temp !== null);
+                if (filtered.length > 0) {
+                    calendarHtml = `<h3 style="margin: 24px 0 12px; color: #d97706; font-size: 0.9rem;"><i class="fas fa-calendar-alt"></i> КЛИМАТИЧЕСКАЯ ТАБЛИЦА</h3><div class="table-wrapper">\n<table>\n<thead>\n<tr>\n<th>МЕСЯЦ</th><th>ТЕМПЕРАТУРА</th><th>ОСАДКИ</th><th>БЕТОНИРОВАНИЕ</th>\n</tr>\n</thead>\n<tbody>\n${filtered.map(m => `<tr>\n<td>${m.month}</td>\n<td>${m.temp}°C</td>\n<td>${m.rain_mm} мм</td>\n<td>${m.can_pour}</td>\n</tr>`).join('')}\n</tbody>\n</table>\n</div>`;
+                }
+            }
+            
+            let dailyHtml = '';
+            if (w.daily_forecast && w.daily_forecast.length > 0) {
+                const daysToShow = w.daily_forecast.slice(0, 7);
+                dailyHtml = `<h3 style="margin: 24px 0 12px; color: #d97706; font-size: 0.9rem;"><i class="fas fa-calendar-week"></i> ПРОГНОЗ НА 7 ДНЕЙ</h3><div class="metrics-grid">
+                    ${daysToShow.map(day => `<div class="metric-card"><h3>${day.date}</h3><div class="value">${day.temp}°C</div><div style="font-size: 12px;">${day.condition}</div><div style="color: ${day.can_pour ? '#10b981' : '#ef4444'}; font-size: 12px; font-weight: 600;">${day.can_pour ? 'ГОДЕН' : 'НЕ ГОДЕН'}</div></div>`).join('')}
+                </div>`;
+                if (w.best_day) dailyHtml += `<div style="background: #fef9e8; border-radius: 16px; padding: 12px 20px; margin-top: 12px; border: 1px solid #d97706;"><i class="fas fa-star" style="color: #f59e0b;"></i> ОПТИМАЛЬНЫЙ ДЕНЬ: <strong>${w.best_day}</strong></div>`;
+            }
+            
+            let futureHtml = '';
+            if (w.future_forecast) {
+                const f3 = w.future_forecast['3_months'], f6 = w.future_forecast['6_months'];
+                if (f3 || f6) {
+                    futureHtml = `<h3 style="margin: 24px 0 12px; color: #d97706; font-size: 0.9rem;"><i class="fas fa-chart-line"></i> ДОЛГОСРОЧНЫЙ ПРОГНОЗ</h3><div class="row">`;
+                    if (f3) futureHtml += `<div class="col"><div class="metric-card"><h3>ЧЕРЕЗ 3 МЕСЯЦА (${f3.month})</h3><div class="value">${f3.temp}°C</div><div>${f3.status}</div></div></div>`;
+                    if (f6) futureHtml += `<div class="col"><div class="metric-card"><h3>ЧЕРЕЗ 6 МЕСЯЦЕВ (${f6.month})</h3><div class="value">${f6.temp}°C</div><div>${f6.status}</div></div></div>`;
+                    futureHtml += `</div>`;
+                }
+            }
+            
+            container.innerHTML = `
+                <div class="metric-card" style="margin-bottom: 20px;"><h3><i class="fas fa-map-marker-alt"></i> ГЕОЛОКАЦИЯ</h3><div class="value">${w.region || city}</div></div>
+                <p><i class="fas fa-leaf"></i> СТРОИТЕЛЬНЫЙ СЕЗОН: ${w.optimal_season || 'май-сентябрь'}</p>
+                <p><i class="fas fa-chart-simple"></i> ТЕКУЩАЯ ОЦЕНКА: ${w.current_month_optimal || 'не выбрано'}</p>
+                ${w.warning ? `<div style="background: #fffbeb; border-radius: 16px; padding: 12px 20px; margin: 16px 0; border: 1px solid #f59e0b;"><i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> ${w.warning}</div>` : ''}
+                ${calendarHtml}
+                ${futureHtml}
+                ${dailyHtml}
+                <p style="margin-top: 24px; background: #f8fafc; border-radius: 16px; padding: 12px 20px; border-left: 3px solid #d97706;"><i class="fas fa-hard-hat"></i> ТЕХНОЛОГИЧЕСКИЕ ТРЕБОВАНИЯ: ${w.concrete_rules || 'Бетонирование при +5°C…+30°C, без дождя'}</p>
+            `;
+        }
+
+        function displayStores(data) {
+            const stores = data.stores || [];
+            const container = document.getElementById('stores');
+            if (stores.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 48px;"><i class="fas fa-store-slash" style="font-size: 48px; color: #cbd5e1;"></i><p style="margin-top: 16px; color: #64748b;">Торговые точки не найдены</p></div>';
+                return;
+            }
+            container.innerHTML = `<h3 style="margin-bottom: 16px; color: #d97706;"><i class="fas fa-store"></i> ПАРТНЁРСКИЕ ТОЧКИ ПРОДАЖ</h3>` + stores.map(s => `
+                <div class="expander" style="margin-bottom: 12px;">
+                    <div class="expander-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <span><i class="fas fa-store"></i> ${s.store_name} ${s.distance_km ? `(${s.distance_km} км)` : ''}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="expander-content">
+                        ${s.address ? `<p><i class="fas fa-location-dot"></i> ${s.address}</p>` : ''}
+                        <a href="${s.search_url}" target="_blank" style="color: #d97706; text-decoration: none; font-weight: 500;"><i class="fas fa-external-link-alt"></i> ПЕРЕЙТИ К ТОВАРАМ</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayResults(data) {
+            currentResult = data;
+            displayRecommendation(data);
+            displayEstimate(data);
+            displayWeather(data);
+            displayStores(data);
+            document.getElementById('results').style.display = 'block';
+            saveToHistory(data.city || document.getElementById('city').value, data.foundation_type, document.getElementById('userInput').value);
+        }
+
+        async function submitQuery() {
+            const city = document.getElementById('city').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const userInput = document.getElementById('userInput').value.trim();
+            const budget = document.getElementById('budget').value;
+            const selfBuild = document.getElementById('selfBuild').checked;
+            const desiredMonth = document.getElementById('desiredMonth').value;
+            
+            if (!userInput) { alert('Заполните описание дома и участка'); return; }
+            if (!city) { alert('Укажите город строительства'); return; }
+            
+            showLoader();
+            const payload = {
+                user_input: userInput,
+                city: city,
+                address: address || null,
+                desired_month: desiredMonth === 'не важно' ? null : desiredMonth,
+                budget: budget,
+                self_build: selfBuild
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/consult`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка подключения к серверу: ' + error.message);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        displayHistory();
+    </script>
+</body>
+</html>

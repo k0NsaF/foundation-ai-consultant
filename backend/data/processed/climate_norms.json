@@ -1,0 +1,22 @@
+{
+    "москва": {
+        "optimal_start_month": 5,
+        "optimal_end_month": 9,
+        "rainy_months": [7, 8],
+        "frost_months": [11, 12, 1, 2, 3],
+        "months": {
+            "1": {"temp": -10, "rain_mm": 52},
+            "2": {"temp": -9, "rain_mm": 41},
+            "3": {"temp": -4, "rain_mm": 35},
+            "4": {"temp": 5, "rain_mm": 37},
+            "5": {"temp": 13, "rain_mm": 51},
+            "6": {"temp": 17, "rain_mm": 78},
+            "7": {"temp": 19, "rain_mm": 85},
+            "8": {"temp": 17, "rain_mm": 82},
+            "9": {"temp": 11, "rain_mm": 68},
+            "10": {"temp": 5, "rain_mm": 71},
+            "11": {"temp": -2, "rain_mm": 55},
+            "12": {"temp": -7, "rain_mm": 52}
+        }
+    }
+}

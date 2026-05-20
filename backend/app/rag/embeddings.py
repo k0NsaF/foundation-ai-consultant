@@ -1,13 +1,9 @@
-from sentence_transformers import SentenceTransformer
-from app.config import Config
-
 class EmbeddingModel:
     def __init__(self):
-        self.model = SentenceTransformer(Config.EMBEDDING_MODEL)
-        self.dimension = self.model.get_sentence_embedding_dimension()
+        self.dimension = 768
     
     def encode(self, texts: list) -> list:
-        return self.model.encode(texts)
+        return [[0.0] * self.dimension for _ in texts]
     
     def encode_query(self, query: str) -> list:
-        return self.model.encode(query)
+        return [0.0] * self.dimension

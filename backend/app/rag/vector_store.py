@@ -3,25 +3,23 @@ from qdrant_client.models import Distance, VectorParams, PointStruct
 from app.rag.embeddings import EmbeddingModel
 from app.config import Config
 import uuid
-import os
 
 
 class VectorStore:
     def __init__(self, collection_name: str = "foundations"):
+        print(f"Подключение к Qdrant: URL={Config.QDRANT_URL}")
+        
         # Подключение к облачному Qdrant
-        url = Config.QDRANT_URL
-        api_key = Config.QDRANT_API_KEY
-        
-        print(f"Подключение к Qdrant: URL={url}, API_KEY={api_key[:20] if api_key else 'None'}...")
-        
-        if api_key and url != "http://localhost:6333":
+        if Config.QDRANT_API_KEY and Config.QDRANT_URL != "http://localhost:6333":
             self.client = QdrantClient(
-                url=url,
-                api_key=api_key
+                url=Config.QDRANT_URL,
+                api_key=Config.QDRANT_API_KEY
             )
+            print("Подключено к Qdrant Cloud")
         else:
             # Локальное подключение (для разработки)
             self.client = QdrantClient(host="localhost", port=6333)
+            print("Подключено к локальному Qdrant")
         
         self.collection_name = collection_name
         self.embedding_model = EmbeddingModel()
@@ -49,10 +47,10 @@ class VectorStore:
 
     def _add_sample_documents(self):
         documents = [
-            {"text": "СП 22.13330.2016 Основания зданий и сооружений. Свайные фундаменты рекомендуются при слабых грунтах: торф, болото, плывуны.", "source": "СП 22.13330.2016"},
-            {"text": "ГОСТ 25100-2020 Грунты. Классификация. Суглинки и глины требуют заглубления ниже глубины промерзания.", "source": "ГОСТ 25100-2020"},
-            {"text": "УШП (утеплённая шведская плита) рекомендуется для пучинистых грунтов и домов с высокими нагрузками.", "source": "Техническая рекомендация"},
-            {"text": "Ленточные фундаменты подходят для песчаных и скальных грунтов с небольшой нагрузкой.", "source": "СП 50.101.2004"},
+            {"text": "СП 22.13330.2016: Свайные фундаменты на торфах", "source": "СП 22.13330.2016"},
+            {"text": "ГОСТ 25100-2020: Классификация грунтов. Суглинки и глины.", "source": "ГОСТ 25100-2020"},
+            {"text": "УШП для пучинистых грунтов и высоких нагрузок.", "source": "Техническая рекомендация"},
+            {"text": "Ленточные фундаменты для песчаных и скальных грунтов.", "source": "СП 50.101.2004"},
         ]
         
         points = []
@@ -70,24 +68,7 @@ class VectorStore:
             collection_name=self.collection_name,
             points=points
         )
-        print(f"Добавлено {len(points)} документов в коллекцию")
-
-    def add_documents(self, documents: list[dict]):
-        points = []
-        for doc in documents:
-            vector = self.embedding_model.encode([doc["text"]])[0]
-            points.append(PointStruct(
-                id=str(uuid.uuid4()),
-                vector=vector.tolist(),
-                payload={
-                    "text": doc["text"],
-                    "source": doc.get("source", ""),
-                }
-            ))
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=points
-        )
+        print(f"Добавлено {len(points)} документов")
 
     def search(self, query: str, limit: int = 5) -> list[dict]:
         query_vector = self.embedding_model.encode_query(query)

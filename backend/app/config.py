@@ -7,7 +7,7 @@ class Config:
     GITHUB_TEMPERATURE = 0.3
     GITHUB_MAX_TOKENS = 1500
     
-    # Qdrant Cloud - читаем переменные окружения
+    # Qdrant Cloud - читаем из переменных окружения
     QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
     QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
     COLLECTION_NAME = "foundation_standards"
@@ -26,3 +26,7 @@ class Config:
     DATA_DIR = os.path.join(BASE_DIR, "data")
     
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+    
+    # Вывод для отладки
+    print(f"QDRANT_URL = {QDRANT_URL}")
+    print(f"QDRANT_API_KEY = {QDRANT_API_KEY[:20] if QDRANT_API_KEY else 'None'}...")

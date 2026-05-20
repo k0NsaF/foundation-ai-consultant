@@ -1,8 +1,12 @@
+import os
+import uuid
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from app.rag.embeddings import EmbeddingModel
-import os
-import uuid
+
+print("=== ЗАГРУЗКА vector_store.py ===")
+print(f"QDRANT_URL из окружения: {os.getenv('QDRANT_URL', 'НЕ УСТАНОВЛЕН')}")
+print(f"QDRANT_API_KEY: {os.getenv('QDRANT_API_KEY', 'НЕ УСТАНОВЛЕН')[:30] if os.getenv('QDRANT_API_KEY') else 'НЕ УСТАНОВЛЕН'}...")
 
 
 class VectorStore:
@@ -11,22 +15,37 @@ class VectorStore:
         qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
         qdrant_api_key = os.getenv("QDRANT_API_KEY", "")
         
+        print(f"\n=== ИНИЦИАЛИЗАЦИЯ VectorStore ===")
         print(f"Подключение к Qdrant: URL={qdrant_url}")
+        print(f"API Key установлен: {'ДА' if qdrant_api_key else 'НЕТ'}")
         
         # Подключение к облачному Qdrant
         if qdrant_api_key and qdrant_url != "http://localhost:6333":
-            self.client = QdrantClient(
-                url=qdrant_url,
-                api_key=qdrant_api_key
-            )
-            print("✅ Подключено к Qdrant Cloud")
+            try:
+                self.client = QdrantClient(
+                    url=qdrant_url,
+                    api_key=qdrant_api_key
+                )
+                print("✅ ПОДКЛЮЧЕНО К QDRANT CLOUD")
+            except Exception as e:
+                print(f"❌ Ошибка подключения к Qdrant Cloud: {e}")
+                self.client = None
         else:
-            self.client = QdrantClient(host="localhost", port=6333)
-            print("⚠️ Подключено к локальному Qdrant")
+            # Локальное подключение (для разработки)
+            try:
+                self.client = QdrantClient(host="localhost", port=6333)
+                print("⚠️ ПОДКЛЮЧЕНО К ЛОКАЛЬНОМУ QDRANT")
+            except Exception as e:
+                print(f"❌ Ошибка подключения к локальному Qdrant: {e}")
+                self.client = None
         
         self.collection_name = collection_name
         self.embedding_model = EmbeddingModel()
-        self._init_collection()
+        
+        if self.client:
+            self._init_collection()
+        else:
+            print("❌ Qdrant клиент не инициализирован, RAG не будет работать")
 
     def _init_collection(self):
         try:
@@ -74,17 +93,25 @@ class VectorStore:
         print(f"✅ Добавлено {len(points)} документов в коллекцию")
 
     def search(self, query: str, limit: int = 5) -> list[dict]:
-        query_vector = self.embedding_model.encode_query(query)
-        search_result = self.client.search(
-            collection_name=self.collection_name,
-            query_vector=query_vector.tolist(),
-            limit=limit
-        )
-        results = []
-        for hit in search_result:
-            results.append({
-                "text": hit.payload["text"],
-                "score": hit.score,
-                "source": hit.payload.get("source", ""),
-            })
-        return results
+        if not self.client:
+            print("❌ Поиск невозможен: Qdrant клиент не инициализирован")
+            return []
+        
+        try:
+            query_vector = self.embedding_model.encode_query(query)
+            search_result = self.client.search(
+                collection_name=self.collection_name,
+                query_vector=query_vector.tolist(),
+                limit=limit
+            )
+            results = []
+            for hit in search_result:
+                results.append({
+                    "text": hit.payload["text"],
+                    "score": hit.score,
+                    "source": hit.payload.get("source", ""),
+                })
+            return results
+        except Exception as e:
+            print(f"❌ Ошибка поиска в Qdrant: {e}")
+            return []

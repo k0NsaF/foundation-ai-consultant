@@ -1,18 +1,20 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import Optional, Dict, List
-
-from app.pipeline.extractor import ParameterExtractor
-from app.pipeline.enricher import DataEnricher
-from app.rag.retriever import RAGRetriever
-from app.pipeline.cost_calc import CostCalculator
-from app.pipeline.weather import WeatherAdvisor
-from app.pipeline.geocoding import GeocodingService
-from app.pipeline.store_locator import StoreLocator
-from app.pipeline.generator import AnswerGenerator
-from app.config import Config
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
+from ..models import ConsultRequest, ConsultResponse
+from ..pipeline.extractor import ParameterExtractor
+from ..pipeline.enricher import DataEnricher
+from ..pipeline.cost_calc import CostCalculator
+from ..pipeline.weather import WeatherAdvisor
+from ..pipeline.geocoding import GeocodingService
+from ..pipeline.store_locator import StoreLocator
+from ..pipeline.generator import AnswerGenerator
+from ..rag.retriever import RAGRetriever
+import os
 
 router = APIRouter()
+
+templates_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+templates = Jinja2Templates(directory=templates_dir)
 
 extractor = ParameterExtractor()
 enricher = DataEnricher()
@@ -23,64 +25,12 @@ geocoding = GeocodingService()
 store_locator = StoreLocator()
 generator = AnswerGenerator()
 
+@router.get("/")
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-class ConsultationRequest(BaseModel):
-    user_input: str
-    city: str
-    address: Optional[str] = None
-    desired_month: Optional[str] = None
-    budget: Optional[str] = None
-    self_build: bool = False
-
-
-class ConsultationResponse(BaseModel):
-    foundation_type: str
-    cost_estimate: Dict
-    weather_recommendation: Dict
-    stores: List[Dict]
-    answer: str
-    sources: List[str]
-
-
-def determine_foundation_type(docs: list, params: dict) -> str:
-    soil = params.get("soil", "не указан").lower()
-    load = params.get("total_load_tons", 0)
-    material = params.get("material", "не указан").lower()
-    freezing_depth = params.get("freezing_depth", 1.5)
-    
-    print(f"=== ОТЛАДКА routes: soil={soil}, load={load}, material={material}, freezing_depth={freezing_depth} ===")
-    
-    # 1. Свайный фундамент (СП 24.13330.2011)
-    if "сильнопучинистая" in soil or soil in ["торф", "болото"]:
-        return "Свайно-винтовой фундамент (по СП 24.13330.2011)"
-    
-    if soil in ["глина", "суглинок"] and freezing_depth > 2.0:
-        return "Свайно-винтовой фундамент (по СП 24.13330.2011)"
-    
-    # 2. Непучинистые грунты
-    if soil in ["песок", "супесь", "скальный", "крупный песок", "скала"]:
-        if material in ["дерево", "брус", "каркас"] and load < 8:
-            return "Столбчатый фундамент"
-        return "Ленточный фундамент (по СП 22.13330.2016)"
-    
-    # 3. Пучинистые грунты (глина, суглинок)
-    if soil in ["глина", "суглинок"]:
-        if material in ["дерево", "брус", "каркас"] and load <= 15:
-            return "Мелкозаглубленная лента (СП 22.13330.2016)"
-        elif load > 15:
-            return "УШП утепленная шведская плита"
-        else:
-            return "Мелкозаглубленная лента (СП 22.13330.2016)"
-    
-    # 4. Столбчатый для очень лёгких
-    if material in ["дерево", "брус", "каркас"] and load < 8:
-        return "Столбчатый фундамент"
-    
-    return "Ленточный фундамент (по СП 22.13330.2016)"
-
-
-@router.post("/consult", response_model=ConsultationResponse)
-async def consult(request: ConsultationRequest):
+@router.post("/consult", response_model=ConsultResponse)
+async def consult(request: ConsultRequest):
     params = extractor.extract(request.user_input)
     params["city"] = request.city
     params["address"] = request.address
@@ -93,19 +43,22 @@ async def consult(request: ConsultationRequest):
     if request.city:
         coords = geocoding.get_coordinates(request.city, request.address)
 
-    if coords:
-        print(f"Координаты для {request.city}: широта={coords[0]}, долгота={coords[1]}")
-    else:
-        print(f"Не удалось получить координаты для города: {request.city}")
-
+    # RAG поиск
     docs = retriever.retrieve(request.user_input, enriched)
 
-    foundation_type = determine_foundation_type(docs, enriched)
+    # Определяем тип фундамента (пока заглушка)
+    foundation_type = "Ленточный фундамент"
+    if docs:
+        for doc in docs:
+            if "свайный" in doc["text"].lower():
+                foundation_type = "Свайно-винтовой фундамент"
+            elif "УШП" in doc["text"]:
+                foundation_type = "УШП утепленная шведская плита"
 
     cost = cost_calc.calculate(foundation_type, enriched)
 
     weather = weather_advisor.get_recommendation(
-        region=request.city,
+        region=enriched.get("region", "подмосковье"),
         desired_month=request.desired_month,
         lat=coords[0] if coords else None,
         lon=coords[1] if coords else None
@@ -114,8 +67,6 @@ async def consult(request: ConsultationRequest):
     stores = []
     if coords:
         stores = store_locator.find_nearby_stores(coords[0], coords[1])
-    
-    print(f"Найдено магазинов: {len(stores)}")
 
     store_links = store_locator.get_search_links("бетон", stores)
     if not store_links:

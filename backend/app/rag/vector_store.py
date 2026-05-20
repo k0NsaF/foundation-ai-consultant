@@ -7,8 +7,10 @@ import uuid
 
 class VectorStore:
     def __init__(self, collection_name: str = "foundations"):
+        # Подключение к облачному Qdrant
         self.client = QdrantClient(
-            host=Config.QDRANT_HOST, port=Config.QDRANT_PORT
+            url=Config.QDRANT_URL,
+            api_key=Config.QDRANT_API_KEY
         )
         self.collection_name = collection_name
         self.embedding_model = EmbeddingModel()
@@ -27,8 +29,36 @@ class VectorStore:
                         distance=Distance.COSINE
                     )
                 )
+                self._add_sample_documents()
         except Exception as e:
             print(f"Ошибка инициализации коллекции: {e}")
+
+    def _add_sample_documents(self):
+        """Добавляем примеры нормативных документов"""
+        documents = [
+            {"text": "СП 22.13330.2016 Основания зданий и сооружений. Свайные фундаменты рекомендуются при слабых грунтах: торф, болото, плывуны.", "source": "СП 22.13330.2016"},
+            {"text": "ГОСТ 25100-2020 Грунты. Классификация. Суглинки и глины требуют заглубления ниже глубины промерзания.", "source": "ГОСТ 25100-2020"},
+            {"text": "УШП (утеплённая шведская плита) рекомендуется для пучинистых грунтов и домов с высокими нагрузками.", "source": "Техническая рекомендация"},
+            {"text": "Ленточные фундаменты подходят для песчаных и скальных грунтов с небольшой нагрузкой.", "source": "СП 50.101.2004"},
+            {"text": "Мелкозаглубленная лента подходит для лёгких домов на песчаных грунтах.", "source": "СП 50.101.2004"},
+        ]
+        
+        points = []
+        for i, doc in enumerate(documents):
+            vector = self.embedding_model.encode([doc["text"]])[0]
+            points.append(PointStruct(
+                id=i,
+                vector=vector.tolist(),
+                payload={
+                    "text": doc["text"],
+                    "source": doc.get("source", ""),
+                }
+            ))
+        self.client.upsert(
+            collection_name=self.collection_name,
+            points=points
+        )
+        print(f"Добавлено {len(points)} документов в коллекцию")
 
     def add_documents(self, documents: list[dict]):
         points = []
@@ -52,17 +82,17 @@ class VectorStore:
 
     def search(self, query: str, limit: int = 5) -> list[dict]:
         query_vector = self.embedding_model.encode_query(query)
-        results = self.client.search(
+        search_result = self.client.search(
             collection_name=self.collection_name,
             query_vector=query_vector.tolist(),
             limit=limit
         )
-        return [
-            {
+        results = []
+        for hit in search_result:
+            results.append({
                 "text": hit.payload["text"],
                 "score": hit.score,
                 "source": hit.payload.get("source", ""),
                 "type": hit.payload.get("type", "")
-            }
-            for hit in results
-        ]
+            })
+        return results

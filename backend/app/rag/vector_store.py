@@ -6,10 +6,15 @@ import uuid
 
 class VectorStore:
     def __init__(self, collection_name: str = "foundations"):
+        # ОТЛАДКА: выводим переменные окружения
+        print("=== ОТЛАДКА QDRANT ===")
+        print(f"QDRANT_URL = {os.getenv('QDRANT_URL')}")
+        print(f"QDRANT_API_KEY = {os.getenv('QDRANT_API_KEY', '')[:50] if os.getenv('QDRANT_API_KEY') else 'None'}...")
+        
         url = os.getenv("QDRANT_URL", "http://localhost:6333")
         api_key = os.getenv("QDRANT_API_KEY", "")
         
-        print(f"🔗 Подключение к Qdrant: {url}")
+        print(f"Подключение к Qdrant: URL={url}")
         
         if api_key and url != "http://localhost:6333":
             self.client = QdrantClient(url=url, api_key=api_key)

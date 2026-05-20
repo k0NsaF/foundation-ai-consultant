@@ -11,6 +11,8 @@ from ..pipeline.generator import AnswerGenerator
 from ..rag.retriever import RAGRetriever
 import os
 
+print("=== ЗАГРУЗКА routes.py ===")
+
 router = APIRouter()
 
 templates_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
@@ -43,10 +45,8 @@ async def consult(request: ConsultRequest):
     if request.city:
         coords = geocoding.get_coordinates(request.city, request.address)
 
-    # RAG поиск
     docs = retriever.retrieve(request.user_input, enriched)
 
-    # Определяем тип фундамента (пока заглушка)
     foundation_type = "Ленточный фундамент"
     if docs:
         for doc in docs:
@@ -70,17 +70,13 @@ async def consult(request: ConsultRequest):
 
     store_links = store_locator.get_search_links("бетон", stores)
     if not store_links:
-        store_links = store_locator.get_fallback_links(
-            "бетон", request.city
-        )
+        store_links = store_locator.get_fallback_links("бетон", request.city)
 
     answer = generator.generate(
         request.user_input, docs, cost, weather, store_links, enriched
     )
 
-    sources = list(set([
-        doc.get("source", "") for doc in docs if doc.get("source")
-    ]))
+    sources = list(set([doc.get("source", "") for doc in docs if doc.get("source")]))
 
     return ConsultationResponse(
         foundation_type=foundation_type,

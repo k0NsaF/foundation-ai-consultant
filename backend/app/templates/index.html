@@ -285,57 +285,6 @@
             color: #334155;
         }
 
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .expander {
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            margin-top: 12px;
-            overflow: hidden;
-        }
-
-        .expander-header {
-            background: #f8fafc;
-            padding: 16px 20px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #1e3a5f;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .expander-header:hover {
-            background: #f1f5f9;
-        }
-
-        .expander-header i {
-            transition: transform 0.2s;
-            color: #d97706;
-        }
-
-        .expander-content {
-            padding: 0 20px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .expander-content.open {
-            max-height: 800px;
-            padding: 20px;
-        }
-
-        .history-item {
-            background: #f8fafc;
-            border-radius: 14px;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            border-left: 3px solid #d97706;
-        }
-
         .loader-overlay {
             position: fixed;
             top: 0;
@@ -395,13 +344,6 @@
             .card {
                 padding: 20px;
             }
-            .tab-btn {
-                padding: 6px 14px;
-                font-size: 0.8rem;
-            }
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
             .btn-primary {
                 padding: 12px 32px;
             }
@@ -436,55 +378,6 @@
             <div class="form-group">
                 <label><i class="fas fa-home"></i> ОПИСАНИЕ ОБЪЕКТА</label>
                 <textarea id="userInput" rows="4" placeholder="Пример: Дом из газобетона, 2 этажа, размер 10 на 8 метров, грунт — суглинок"></textarea>
-            </div>
-
-            <div class="expander">
-                <div class="expander-header" onclick="toggleExpander()">
-                    <span><i class="fas fa-sliders-h"></i> ПРОДВИНУТЫЕ НАСТРОЙКИ</span>
-                    <i class="fas fa-chevron-down" id="expanderIcon"></i>
-                </div>
-                <div class="expander-content" id="settingsContent">
-                    <div class="row">
-                        <div class="col">
-                            <div class="form-group">
-                                <label><i class="fas fa-file-pdf"></i> ЗАГРУЗИТЬ ГЕОЛОГИЮ (PDF)</label>
-                                <input type="file" id="geologyFile" accept=".pdf">
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-chart-line"></i> БЮДЖЕТ (тыс. руб)</label>
-                                <select id="budget">
-                                    <option>до 300</option>
-                                    <option>300-500</option>
-                                    <option selected>500-800</option>
-                                    <option>800-1200</option>
-                                    <option>1200+</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="selfBuild">
-                                    <span><i class="fas fa-hard-hat"></i> СТРОИТЕЛЬСТВО СВОИМИ РУКАМИ</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group">
-                                <label><i class="fas fa-calendar-alt"></i> ЖЕЛАЕМЫЙ МЕСЯЦ НАЧАЛА</label>
-                                <select id="desiredMonth">
-                                    <option>не важно</option>
-                                    <option>январь</option><option>февраль</option><option>март</option>
-                                    <option>апрель</option><option>май</option><option>июнь</option>
-                                    <option>июль</option><option>август</option><option>сентябрь</option>
-                                    <option>октябрь</option><option>ноябрь</option><option>декабрь</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-history"></i> ИСТОРИЯ ЗАПРОСОВ</label>
-                                <div id="historyContainer"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div style="text-align: center; margin-top: 28px;">
@@ -529,15 +422,7 @@
 
     <script>
         let currentResult = null;
-
-        const API_URL = '';
-
-        function toggleExpander() {
-            const content = document.getElementById('settingsContent');
-            const icon = document.getElementById('expanderIcon');
-            content.classList.toggle('open');
-            icon.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)';
-        }
+        const API_URL = "";
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -556,36 +441,12 @@
             return text.replace(/\n/g, '<br>');
         }
 
-        function displayHistory() {
-            const history = JSON.parse(localStorage.getItem('foundation_history') || '[]');
-            const container = document.getElementById('historyContainer');
-            if (!container) return;
-            if (history.length === 0) {
-                container.innerHTML = '<p style="color: #94a3b8;">История пуста</p>';
-                return;
-            }
-            container.innerHTML = history.slice(-5).reverse().map(item => `
-                <div class="history-item">
-                    <strong>${item.timestamp}</strong> – ${item.city} – ${item.foundation}<br>
-                    <small style="color: #64748b;">${item.query.substring(0, 80)}...</small>
-                </div>
-            `).join('');
-        }
-
-        function saveToHistory(city, foundation, query) {
-            const history = JSON.parse(localStorage.getItem('foundation_history') || '[]');
-            history.push({ timestamp: new Date().toLocaleString(), city, foundation, query });
-            if (history.length > 10) history.shift();
-            localStorage.setItem('foundation_history', JSON.stringify(history));
-            displayHistory();
-        }
-
         function displayRecommendation(data) {
             const container = document.getElementById('recommendation');
             let answerHtml = '<div class="recommendation-text">' + formatRecommendation(data.answer) + '</div>';
             if (data.sources && data.sources.length > 0) {
-                answerHtml += `<hr style="margin: 24px 0; border-color: #e2e8f0;"><h3 style="font-size: 0.9rem; font-weight: 600; color: #d97706; margin-bottom: 12px;"><i class="fas fa-gavel"></i> НОРМАТИВНАЯ БАЗА</h3><ul style="margin-left: 20px;">`;
-                data.sources.forEach(src => { answerHtml += `<li style="margin-bottom: 8px; color: #4a5568;">${src}</li>`; });
+                answerHtml += `<hr><h3>📚 НОРМАТИВНАЯ БАЗА</h3><ul>`;
+                data.sources.forEach(src => { answerHtml += `<li>${src}</li>`; });
                 answerHtml += `</ul>`;
             }
             container.innerHTML = answerHtml;
@@ -595,7 +456,7 @@
             const ce = data.cost_estimate || {};
             const container = document.getElementById('estimate');
             container.innerHTML = `
-                <h3 style="margin-bottom: 20px; color: #d97706; font-size: 1rem;"><i class="fas fa-ruler-combined"></i> ТИП КОНСТРУКЦИИ: ${data.foundation_type || 'Не определён'}</h3>
+                <h3>🏗️ ТИП КОНСТРУКЦИИ: ${data.foundation_type || 'Не определён'}</h3>
                 <div class="metrics-grid">
                     <div class="metric-card"><h3>МАТЕРИАЛЫ</h3><div class="value">${formatNumber(ce.materials || 0)} ₽</div></div>
                     <div class="metric-card"><h3>РАБОТЫ</h3><div class="value">${formatNumber(ce.work || 0)} ₽</div></div>
@@ -603,56 +464,25 @@
                     <div class="metric-card"><h3>РЕЗЕРВ</h3><div class="value">${formatNumber(ce.overhead || 0)} ₽</div></div>
                 </div>
                 <div class="metrics-grid">
-                    <div class="metric-card" style="background: linear-gradient(135deg, #fef9e8, #fff5e0); border-color: #d97706;">
+                    <div class="metric-card" style="background: linear-gradient(135deg, #fef9e8, #fff5e0);">
                         <h3 style="color: #d97706;">ОБЩАЯ СТОИМОСТЬ</h3>
                         <div class="value" style="color: #b45309;">${formatNumber(ce.total || 0)} ₽</div>
                     </div>
                 </div>
-                ${ce.self_build ? '<div style="background: #ecfdf5; border-radius: 16px; padding: 12px 16px; margin-top: 16px; border: 1px solid #10b981;"><i class="fas fa-check-circle" style="color: #10b981;"></i> Режим DIY — стоимость работ исключена</div>' : ''}
-                ${ce.pile_count ? `<p style="margin-top: 16px; color: #64748b;"><i class="fas fa-chart-simple"></i> Количество свай по расчёту: ${ce.pile_count} шт</p>` : ''}
+                ${ce.self_build ? '<div style="background: #ecfdf5; padding: 12px; border-radius: 16px;"><i class="fas fa-check-circle" style="color: #10b981;"></i> Режим DIY — стоимость работ исключена</div>' : ''}
+                ${ce.pile_count ? `<p>📊 Количество свай: ${ce.pile_count} шт</p>` : ''}
             `;
         }
 
         function displayWeather(data) {
             const w = data.weather_recommendation || {};
             const container = document.getElementById('weather');
-            let calendarHtml = '';
-            if (w.monthly_calendar && w.monthly_calendar.length > 0) {
-                const filtered = w.monthly_calendar.filter(m => m.temp !== null);
-                if (filtered.length > 0) {
-                    calendarHtml = `<h3 style="margin: 24px 0 12px; color: #d97706; font-size: 0.9rem;"><i class="fas fa-calendar-alt"></i> КЛИМАТИЧЕСКАЯ ТАБЛИЦА</h3><div class="table-wrapper">\n<table>\n<thead>\n<tr>\n<th>МЕСЯЦ</th><th>ТЕМПЕРАТУРА</th><th>ОСАДКИ</th><th>БЕТОНИРОВАНИЕ</th>\n</tr>\n</thead>\n<tbody>\n${filtered.map(m => `<tr>\n<td>${m.month}</td>\n<td>${m.temp}°C</td>\n<td>${m.rain_mm} мм</td>\n<td>${m.can_pour}</td>\n</tr>`).join('')}\n</tbody>\n</table>\n</div>`;
-                }
-            }
-            
-            let dailyHtml = '';
-            if (w.daily_forecast && w.daily_forecast.length > 0) {
-                const daysToShow = w.daily_forecast.slice(0, 7);
-                dailyHtml = `<h3 style="margin: 24px 0 12px; color: #d97706; font-size: 0.9rem;"><i class="fas fa-calendar-week"></i> ПРОГНОЗ НА 7 ДНЕЙ</h3><div class="metrics-grid">
-                    ${daysToShow.map(day => `<div class="metric-card"><h3>${day.date}</h3><div class="value">${day.temp}°C</div><div style="font-size: 12px;">${day.condition}</div><div style="color: ${day.can_pour ? '#10b981' : '#ef4444'}; font-size: 12px; font-weight: 600;">${day.can_pour ? 'ГОДЕН' : 'НЕ ГОДЕН'}</div></div>`).join('')}
-                </div>`;
-                if (w.best_day) dailyHtml += `<div style="background: #fef9e8; border-radius: 16px; padding: 12px 20px; margin-top: 12px; border: 1px solid #d97706;"><i class="fas fa-star" style="color: #f59e0b;"></i> ОПТИМАЛЬНЫЙ ДЕНЬ: <strong>${w.best_day}</strong></div>`;
-            }
-            
-            let futureHtml = '';
-            if (w.future_forecast) {
-                const f3 = w.future_forecast['3_months'], f6 = w.future_forecast['6_months'];
-                if (f3 || f6) {
-                    futureHtml = `<h3 style="margin: 24px 0 12px; color: #d97706; font-size: 0.9rem;"><i class="fas fa-chart-line"></i> ДОЛГОСРОЧНЫЙ ПРОГНОЗ</h3><div class="row">`;
-                    if (f3) futureHtml += `<div class="col"><div class="metric-card"><h3>ЧЕРЕЗ 3 МЕСЯЦА (${f3.month})</h3><div class="value">${f3.temp}°C</div><div>${f3.status}</div></div></div>`;
-                    if (f6) futureHtml += `<div class="col"><div class="metric-card"><h3>ЧЕРЕЗ 6 МЕСЯЦЕВ (${f6.month})</h3><div class="value">${f6.temp}°C</div><div>${f6.status}</div></div></div>`;
-                    futureHtml += `</div>`;
-                }
-            }
-            
             container.innerHTML = `
-                <div class="metric-card" style="margin-bottom: 20px;"><h3><i class="fas fa-map-marker-alt"></i> ГЕОЛОКАЦИЯ</h3><div class="value">${w.region || city}</div></div>
-                <p><i class="fas fa-leaf"></i> СТРОИТЕЛЬНЫЙ СЕЗОН: ${w.optimal_season || 'май-сентябрь'}</p>
-                <p><i class="fas fa-chart-simple"></i> ТЕКУЩАЯ ОЦЕНКА: ${w.current_month_optimal || 'не выбрано'}</p>
-                ${w.warning ? `<div style="background: #fffbeb; border-radius: 16px; padding: 12px 20px; margin: 16px 0; border: 1px solid #f59e0b;"><i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> ${w.warning}</div>` : ''}
-                ${calendarHtml}
-                ${futureHtml}
-                ${dailyHtml}
-                <p style="margin-top: 24px; background: #f8fafc; border-radius: 16px; padding: 12px 20px; border-left: 3px solid #d97706;"><i class="fas fa-hard-hat"></i> ТЕХНОЛОГИЧЕСКИЕ ТРЕБОВАНИЯ: ${w.concrete_rules || 'Бетонирование при +5°C…+30°C, без дождя'}</p>
+                <div class="metric-card"><h3>📍 ГЕОЛОКАЦИЯ</h3><div class="value">${data.city || 'не указан'}</div></div>
+                <p>🌱 СТРОИТЕЛЬНЫЙ СЕЗОН: ${w.optimal_season || 'май-сентябрь'}</p>
+                <p>📊 ТЕКУЩАЯ ОЦЕНКА: ${w.current_month_optimal || 'не выбрано'}</p>
+                ${w.warning ? `<div style="background: #fffbeb; padding: 12px; border-radius: 16px;">⚠️ ${w.warning}</div>` : ''}
+                <p style="background: #f8fafc; padding: 12px; border-radius: 16px;">🔨 ТЕХНОЛОГИЧЕСКИЕ ТРЕБОВАНИЯ: ${w.concrete_rules || 'Бетонирование при +5°C…+30°C, без дождя'}</p>
             `;
         }
 
@@ -660,18 +490,17 @@
             const stores = data.stores || [];
             const container = document.getElementById('stores');
             if (stores.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 48px;"><i class="fas fa-store-slash" style="font-size: 48px; color: #cbd5e1;"></i><p style="margin-top: 16px; color: #64748b;">Торговые точки не найдены</p></div>';
+                container.innerHTML = '<p>🏪 Торговые точки не найдены</p>';
                 return;
             }
-            container.innerHTML = `<h3 style="margin-bottom: 16px; color: #d97706;"><i class="fas fa-store"></i> ПАРТНЁРСКИЕ ТОЧКИ ПРОДАЖ</h3>` + stores.map(s => `
-                <div class="expander" style="margin-bottom: 12px;">
-                    <div class="expander-header" onclick="this.nextElementSibling.classList.toggle('open')">
-                        <span><i class="fas fa-store"></i> ${s.store_name} ${s.distance_km ? `(${s.distance_km} км)` : ''}</span>
-                        <i class="fas fa-chevron-down"></i>
+            container.innerHTML = `<h3>🏪 ПАРТНЁРСКИЕ ТОЧКИ ПРОДАЖ</h3>` + stores.map(s => `
+                <div style="border: 1px solid #e2e8f0; border-radius: 20px; margin-bottom: 12px; overflow: hidden;">
+                    <div style="background: #f8fafc; padding: 16px 20px; font-weight: 600;">
+                        🏬 ${s.store_name} ${s.distance_km ? `(${s.distance_km} км)` : ''}
                     </div>
-                    <div class="expander-content">
-                        ${s.address ? `<p><i class="fas fa-location-dot"></i> ${s.address}</p>` : ''}
-                        <a href="${s.search_url}" target="_blank" style="color: #d97706; text-decoration: none; font-weight: 500;"><i class="fas fa-external-link-alt"></i> ПЕРЕЙТИ К ТОВАРАМ</a>
+                    <div style="padding: 16px 20px;">
+                        ${s.address ? `<p>📍 ${s.address}</p>` : ''}
+                        <a href="${s.search_url}" target="_blank" style="color: #d97706;">🔗 ПЕРЕЙТИ К ТОВАРАМ</a>
                     </div>
                 </div>
             `).join('');
@@ -684,16 +513,12 @@
             displayWeather(data);
             displayStores(data);
             document.getElementById('results').style.display = 'block';
-            saveToHistory(data.city || document.getElementById('city').value, data.foundation_type, document.getElementById('userInput').value);
+            window.scrollTo({ top: document.getElementById('results').offsetTop - 20, behavior: 'smooth' });
         }
 
         async function submitQuery() {
             const city = document.getElementById('city').value.trim();
-            const address = document.getElementById('address').value.trim();
             const userInput = document.getElementById('userInput').value.trim();
-            const budget = document.getElementById('budget').value;
-            const selfBuild = document.getElementById('selfBuild').checked;
-            const desiredMonth = document.getElementById('desiredMonth').value;
             
             if (!userInput) { alert('Заполните описание дома и участка'); return; }
             if (!city) { alert('Укажите город строительства'); return; }
@@ -702,10 +527,10 @@
             const payload = {
                 user_input: userInput,
                 city: city,
-                address: address || null,
-                desired_month: desiredMonth === 'не важно' ? null : desiredMonth,
-                budget: budget,
-                self_build: selfBuild
+                address: null,
+                desired_month: null,
+                budget: "500-800",
+                self_build: false
             };
             
             try {
@@ -724,8 +549,6 @@
                 hideLoader();
             }
         }
-
-        displayHistory();
     </script>
 </body>
 </html>

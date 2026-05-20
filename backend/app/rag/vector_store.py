@@ -3,15 +3,26 @@ from qdrant_client.models import Distance, VectorParams, PointStruct
 from app.rag.embeddings import EmbeddingModel
 from app.config import Config
 import uuid
+import os
 
 
 class VectorStore:
     def __init__(self, collection_name: str = "foundations"):
         # Подключение к облачному Qdrant
-        self.client = QdrantClient(
-            url=Config.QDRANT_URL,
-            api_key=Config.QDRANT_API_KEY
-        )
+        url = Config.QDRANT_URL
+        api_key = Config.QDRANT_API_KEY
+        
+        print(f"Подключение к Qdrant: URL={url}, API_KEY={api_key[:20] if api_key else 'None'}...")
+        
+        if api_key and url != "http://localhost:6333":
+            self.client = QdrantClient(
+                url=url,
+                api_key=api_key
+            )
+        else:
+            # Локальное подключение (для разработки)
+            self.client = QdrantClient(host="localhost", port=6333)
+        
         self.collection_name = collection_name
         self.embedding_model = EmbeddingModel()
         self._init_collection()
@@ -30,17 +41,18 @@ class VectorStore:
                     )
                 )
                 self._add_sample_documents()
+                print(f"Коллекция {self.collection_name} создана")
+            else:
+                print(f"Коллекция {self.collection_name} уже существует")
         except Exception as e:
             print(f"Ошибка инициализации коллекции: {e}")
 
     def _add_sample_documents(self):
-        """Добавляем примеры нормативных документов"""
         documents = [
             {"text": "СП 22.13330.2016 Основания зданий и сооружений. Свайные фундаменты рекомендуются при слабых грунтах: торф, болото, плывуны.", "source": "СП 22.13330.2016"},
             {"text": "ГОСТ 25100-2020 Грунты. Классификация. Суглинки и глины требуют заглубления ниже глубины промерзания.", "source": "ГОСТ 25100-2020"},
             {"text": "УШП (утеплённая шведская плита) рекомендуется для пучинистых грунтов и домов с высокими нагрузками.", "source": "Техническая рекомендация"},
             {"text": "Ленточные фундаменты подходят для песчаных и скальных грунтов с небольшой нагрузкой.", "source": "СП 50.101.2004"},
-            {"text": "Мелкозаглубленная лента подходит для лёгких домов на песчаных грунтах.", "source": "СП 50.101.2004"},
         ]
         
         points = []
@@ -70,9 +82,6 @@ class VectorStore:
                 payload={
                     "text": doc["text"],
                     "source": doc.get("source", ""),
-                    "type": doc.get("type", ""),
-                    "region": doc.get("region", ""),
-                    "metadata": doc.get("metadata", {})
                 }
             ))
         self.client.upsert(
@@ -93,6 +102,5 @@ class VectorStore:
                 "text": hit.payload["text"],
                 "score": hit.score,
                 "source": hit.payload.get("source", ""),
-                "type": hit.payload.get("type", "")
             })
         return results
